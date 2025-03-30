@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class FileActivity extends AppCompatActivity {
     private static final int STORAGE_PERMISSION_CODE = 100;
     private TextView tvFileContent;
     private Button btnWrite, btnRead, btnDelete, btnInfo;
-    private final String FILE_NAME = "app_data.txt";
+    private static final String FILE_NAME = "app_data.txt";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,19 +48,14 @@ public class FileActivity extends AppCompatActivity {
 
     private void setupButtons() {
         btnWrite.setOnClickListener(v -> {
-            String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                    .format(new Date());
+            String currentTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
             String dataToSave = "Запись от: " + currentTime + "\nТестовые данные";
             writeFile(dataToSave);
         });
 
         btnRead.setOnClickListener(v -> {
             String fileContent = readFile();
-            if (!fileContent.isEmpty()) {
-                tvFileContent.setText(fileContent);
-            } else {
-                tvFileContent.setText("Файл пуст или не существует");
-            }
+            tvFileContent.setText(fileContent.isEmpty() ? "Файл пуст или не существует" : fileContent);
         });
 
         btnDelete.setOnClickListener(v -> deleteFile());
@@ -67,31 +63,23 @@ public class FileActivity extends AppCompatActivity {
     }
 
     private void checkStoragePermission() {
-        // Для Android 10+ (API 29) разрешения не нужны для внутреннего хранилища
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return;
-        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) return;
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this,
-                    new String[]{
-                            Manifest.permission.READ_EXTERNAL_STORAGE,
-                            Manifest.permission.WRITE_EXTERNAL_STORAGE
-                    },
-                    STORAGE_PERMISSION_CODE);
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{
+                    Manifest.permission.READ_EXTERNAL_STORAGE,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+            }, STORAGE_PERMISSION_CODE);
         }
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == STORAGE_PERMISSION_CODE) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Разрешения получены", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Разрешения необходимы для работы с файлами", Toast.LENGTH_LONG).show();
-            }
+        if (requestCode == STORAGE_PERMISSION_CODE && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            showToast("Разрешения получены");
+        } else {
+            showToast("Разрешения необходимы для работы с файлами");
         }
     }
 
@@ -118,7 +106,7 @@ public class FileActivity extends AppCompatActivity {
             showToast("Ошибка при чтении файла");
             e.printStackTrace();
         }
-        return content.toString();
+        return content.toString().trim();
     }
 
     private void showToast(String message) {
@@ -126,25 +114,26 @@ public class FileActivity extends AppCompatActivity {
     }
 
     private boolean fileExists() {
-        return getFileStreamPath(FILE_NAME).exists();
+        File file = getFileStreamPath(FILE_NAME);
+        return file.exists() && file.length() > 0;
     }
 
     private void deleteFile() {
-        if (fileExists()) {
-            deleteFile(FILE_NAME);
+        File file = getFileStreamPath(FILE_NAME);
+        if (file.exists() && file.delete()) {
             showToast("Файл удален");
-            tvFileContent.setText(""); // Очищаем TextView после удаления
+            tvFileContent.setText("");
         } else {
             showToast("Файл не существует");
         }
     }
 
     private void showFileInfo() {
-        if (fileExists()) {
+        File file = getFileStreamPath(FILE_NAME);
+        if (file.exists()) {
             String info = "Имя: " + FILE_NAME + "\n" +
-                    "Размер: " + getFileStreamPath(FILE_NAME).length() + " байт\n" +
-                    "Последнее изменение: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-                    .format(new Date(getFileStreamPath(FILE_NAME).lastModified()));
+                    "Размер: " + file.length() + " байт\n" +
+                    "Последнее изменение: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date(file.lastModified()));
             new AlertDialog.Builder(this)
                     .setTitle("Информация о файле")
                     .setMessage(info)
