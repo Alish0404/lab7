@@ -1,6 +1,6 @@
 package com.example.lab7;
 
-import SignUpActivity
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;

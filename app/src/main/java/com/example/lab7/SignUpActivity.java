@@ -1,3 +1,14 @@
+package com.example.lab7;
+
+
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+
 public class SignUpActivity extends AppCompatActivity {
     private EditText edUsername, edPassword, edConfirmPassword;
     private Button btnCreateUser;
