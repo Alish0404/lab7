@@ -23,5 +23,21 @@
         android:id="@+id/btn_read"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Прочитать файл" />
+        android:text="Прочитать файл"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btn_delete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Удалить файл"
+        android:backgroundTint="@color/red" />
+
+    <Button
+        android:id="@+id/btn_info"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Информация о файле" />
 </LinearLayout>
