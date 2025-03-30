@@ -1,19 +1,17 @@
 package com.example.lab7;
 
-
-
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,7 +24,7 @@ import java.util.Locale;
 public class FileActivity extends AppCompatActivity {
     private static final int STORAGE_PERMISSION_CODE = 100;
     private TextView tvFileContent;
-    private Button btnWrite, btnRead;
+    private Button btnWrite, btnRead, btnDelete, btnInfo;
     private final String FILE_NAME = "app_data.txt";
 
     @Override
@@ -43,6 +41,8 @@ public class FileActivity extends AppCompatActivity {
         tvFileContent = findViewById(R.id.tv_file_content);
         btnWrite = findViewById(R.id.btn_write);
         btnRead = findViewById(R.id.btn_read);
+        btnDelete = findViewById(R.id.btn_delete);
+        btnInfo = findViewById(R.id.btn_info);
     }
 
     private void setupButtons() {
@@ -61,9 +61,17 @@ public class FileActivity extends AppCompatActivity {
                 tvFileContent.setText("Файл пуст или не существует");
             }
         });
+
+        btnDelete.setOnClickListener(v -> deleteFile());
+        btnInfo.setOnClickListener(v -> showFileInfo());
     }
 
     private void checkStoragePermission() {
+        // Для Android 10+ (API 29) разрешения не нужны для внутреннего хранилища
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            return;
+        }
+
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
@@ -115,5 +123,35 @@ public class FileActivity extends AppCompatActivity {
 
     private void showToast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
+    }
+
+    private boolean fileExists() {
+        return getFileStreamPath(FILE_NAME).exists();
+    }
+
+    private void deleteFile() {
+        if (fileExists()) {
+            deleteFile(FILE_NAME);
+            showToast("Файл удален");
+            tvFileContent.setText(""); // Очищаем TextView после удаления
+        } else {
+            showToast("Файл не существует");
+        }
+    }
+
+    private void showFileInfo() {
+        if (fileExists()) {
+            String info = "Имя: " + FILE_NAME + "\n" +
+                    "Размер: " + getFileStreamPath(FILE_NAME).length() + " байт\n" +
+                    "Последнее изменение: " + new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+                    .format(new Date(getFileStreamPath(FILE_NAME).lastModified()));
+            new AlertDialog.Builder(this)
+                    .setTitle("Информация о файле")
+                    .setMessage(info)
+                    .setPositiveButton("OK", null)
+                    .show();
+        } else {
+            showToast("Файл не существует");
+        }
     }
 }
