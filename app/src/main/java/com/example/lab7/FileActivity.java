@@ -7,11 +7,13 @@ import android.os.Bundle;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -54,6 +56,7 @@ public class FileActivity extends AppCompatActivity {
         });
 
         btnRead.setOnClickListener(v -> {
+            waitForSomeTime(1000); // Ожидание 1 секунду перед чтением
             String fileContent = readFile();
             tvFileContent.setText(fileContent.isEmpty() ? "Файл пуст или не существует" : fileContent);
         });
@@ -141,6 +144,14 @@ public class FileActivity extends AppCompatActivity {
                     .show();
         } else {
             showToast("Файл не существует");
+        }
+    }
+
+    private void waitForSomeTime(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }
